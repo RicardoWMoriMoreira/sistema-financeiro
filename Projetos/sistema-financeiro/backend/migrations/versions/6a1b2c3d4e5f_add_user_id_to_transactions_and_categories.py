@@ -20,63 +20,41 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    with op.batch_alter_table("transactions", recreate="always") as batch_op:
-        batch_op.add_column(
-            sa.Column("user_id", sa.Integer(), nullable=True)
-        )
-        batch_op.create_index(
-            "ix_transactions_user_id",
-            ["user_id"],
-            unique=False,
-        )
-        batch_op.create_foreign_key(
-            "fk_transactions_user_id_users",
-            "users",
-            ["user_id"],
-            ["id"],
-        )
+    op.add_column("transactions", sa.Column("user_id", sa.Integer(), nullable=True))
+    op.create_index("ix_transactions_user_id", "transactions", ["user_id"], unique=False)
+    op.create_foreign_key(
+        "fk_transactions_user_id_users",
+        "transactions",
+        "users",
+        ["user_id"],
+        ["id"],
+    )
 
-    with op.batch_alter_table("categories", recreate="always") as batch_op:
-        batch_op.add_column(
-            sa.Column("user_id", sa.Integer(), nullable=True)
-        )
-        batch_op.create_index(
-            "ix_categories_user_id",
-            ["user_id"],
-            unique=False,
-        )
-        batch_op.create_foreign_key(
-            "fk_categories_user_id_users",
-            "users",
-            ["user_id"],
-            ["id"],
-        )
-        batch_op.drop_constraint("uq_categories_name_type", type_="unique")
-        batch_op.create_unique_constraint(
-            "uq_categories_name_type_user_id",
-            ["name", "type", "user_id"],
-        )
+    op.add_column("categories", sa.Column("user_id", sa.Integer(), nullable=True))
+    op.create_index("ix_categories_user_id", "categories", ["user_id"], unique=False)
+    op.create_foreign_key(
+        "fk_categories_user_id_users",
+        "categories",
+        "users",
+        ["user_id"],
+        ["id"],
+    )
+    op.drop_constraint("uq_categories_name_type", "categories", type_="unique")
+    op.create_unique_constraint(
+        "uq_categories_name_type_user_id",
+        "categories",
+        ["name", "type", "user_id"],
+    )
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    with op.batch_alter_table("categories", recreate="always") as batch_op:
-        batch_op.drop_constraint("uq_categories_name_type_user_id", type_="unique")
-        batch_op.create_unique_constraint(
-            "uq_categories_name_type",
-            ["name", "type"],
-        )
-        batch_op.drop_constraint(
-            "fk_categories_user_id_users",
-            type_="foreignkey",
-        )
-        batch_op.drop_index("ix_categories_user_id")
-        batch_op.drop_column("user_id")
+    op.drop_constraint("uq_categories_name_type_user_id", "categories", type_="unique")
+    op.create_unique_constraint("uq_categories_name_type", "categories", ["name", "type"])
+    op.drop_constraint("fk_categories_user_id_users", "categories", type_="foreignkey")
+    op.drop_index("ix_categories_user_id", table_name="categories")
+    op.drop_column("categories", "user_id")
 
-    with op.batch_alter_table("transactions", recreate="always") as batch_op:
-        batch_op.drop_constraint(
-            "fk_transactions_user_id_users",
-            type_="foreignkey",
-        )
-        batch_op.drop_index("ix_transactions_user_id")
-        batch_op.drop_column("user_id")
+    op.drop_constraint("fk_transactions_user_id_users", "transactions", type_="foreignkey")
+    op.drop_index("ix_transactions_user_id", table_name="transactions")
+    op.drop_column("transactions", "user_id")
