@@ -39,6 +39,7 @@ def create_credit_card(
     card = CreditCardModel(
         name=payload.name,
         brand=payload.brand,
+        card_type=payload.card_type,
         last_four=payload.last_four,
         closing_day=payload.closing_day,
         due_day=payload.due_day,
@@ -62,6 +63,7 @@ def update_credit_card(
 
     card.name = payload.name
     card.brand = payload.brand
+    card.card_type = payload.card_type
     card.last_four = payload.last_four
     card.closing_day = payload.closing_day
     card.due_day = payload.due_day

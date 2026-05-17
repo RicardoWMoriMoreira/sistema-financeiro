@@ -32,6 +32,11 @@ class CreditCardModel(Base):
         nullable=False,
         default="outro",
     )
+    card_type: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="credit",
+    )
     last_four: Mapped[str] = mapped_column(
         String(4),
         nullable=False,

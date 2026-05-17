@@ -10,6 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -32,6 +39,7 @@ export function CreditCardManager({ cards }: CreditCardManagerProps) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
+  const [cardType, setCardType] = useState<"credit" | "debit">("credit");
   const [lastFour, setLastFour] = useState("");
   const [closingDay, setClosingDay] = useState("1");
   const [dueDay, setDueDay] = useState("1");
@@ -49,12 +57,14 @@ export function CreditCardManager({ cards }: CreditCardManagerProps) {
       await createCreditCard({
         name: name.trim(),
         brand: brand.trim() || "Outro",
+        card_type: cardType,
         last_four: lastFour,
-        closing_day: Number(closingDay),
-        due_day: Number(dueDay),
+        closing_day: cardType === "credit" ? Number(closingDay) : 1,
+        due_day: cardType === "credit" ? Number(dueDay) : 1,
       });
       setName("");
       setBrand("");
+      setCardType("credit");
       setLastFour("");
       setClosingDay("1");
       setDueDay("1");
@@ -95,7 +105,7 @@ export function CreditCardManager({ cards }: CreditCardManagerProps) {
         <CardTitle>Gerenciar cartões</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form onSubmit={handleCreate} className="grid gap-4 md:grid-cols-6">
+        <form onSubmit={handleCreate} className="grid gap-4 md:grid-cols-7">
           <div className="space-y-2 md:col-span-2">
             <Label htmlFor="card-name">Nome do cartão</Label>
             <Input
@@ -118,6 +128,21 @@ export function CreditCardManager({ cards }: CreditCardManagerProps) {
             />
           </div>
           <div className="space-y-2">
+            <Label>Tipo</Label>
+            <Select
+              value={cardType}
+              onValueChange={(value) => setCardType(value as "credit" | "debit")}
+            >
+              <SelectTrigger className="border-slate-700 bg-slate-950">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="credit">Crédito</SelectItem>
+                <SelectItem value="debit">Débito</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="card-last-four">Final</Label>
             <Input
               id="card-last-four"
@@ -128,33 +153,37 @@ export function CreditCardManager({ cards }: CreditCardManagerProps) {
               className="border-slate-700 bg-slate-950"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="closing-day">Fechamento</Label>
-            <Input
-              id="closing-day"
-              type="number"
-              min={1}
-              max={31}
-              value={closingDay}
-              onChange={(event) => setClosingDay(event.target.value)}
-              required
-              className="border-slate-700 bg-slate-950"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="due-day">Vencimento</Label>
-            <Input
-              id="due-day"
-              type="number"
-              min={1}
-              max={31}
-              value={dueDay}
-              onChange={(event) => setDueDay(event.target.value)}
-              required
-              className="border-slate-700 bg-slate-950"
-            />
-          </div>
-          <div className="md:col-span-6">
+          {cardType === "credit" && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="closing-day">Fechamento</Label>
+                <Input
+                  id="closing-day"
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={closingDay}
+                  onChange={(event) => setClosingDay(event.target.value)}
+                  required
+                  className="border-slate-700 bg-slate-950"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="due-day">Vencimento</Label>
+                <Input
+                  id="due-day"
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={dueDay}
+                  onChange={(event) => setDueDay(event.target.value)}
+                  required
+                  className="border-slate-700 bg-slate-950"
+                />
+              </div>
+            </>
+          )}
+          <div className="md:col-span-7">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Salvando..." : "Cadastrar cartão"}
             </Button>
@@ -170,6 +199,7 @@ export function CreditCardManager({ cards }: CreditCardManagerProps) {
                 <TableRow className="border-slate-700 hover:bg-transparent">
                   <TableHead className="text-slate-400">Nome</TableHead>
                   <TableHead className="text-slate-400">Bandeira</TableHead>
+                  <TableHead className="text-slate-400">Tipo</TableHead>
                   <TableHead className="text-slate-400">Final</TableHead>
                   <TableHead className="text-slate-400">Fechamento</TableHead>
                   <TableHead className="text-slate-400">Vencimento</TableHead>
@@ -182,9 +212,14 @@ export function CreditCardManager({ cards }: CreditCardManagerProps) {
                   <TableRow key={card.id} className="border-slate-700">
                     <TableCell>{card.name}</TableCell>
                     <TableCell>{card.brand}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">
+                        {card.card_type === "credit" ? "Crédito" : "Débito"}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{`•••• ${card.last_four}`}</TableCell>
-                    <TableCell>{card.closing_day}</TableCell>
-                    <TableCell>{card.due_day}</TableCell>
+                    <TableCell>{card.card_type === "credit" ? card.closing_day : "-"}</TableCell>
+                    <TableCell>{card.card_type === "credit" ? card.due_day : "-"}</TableCell>
                     <TableCell>
                       <Badge className={card.is_active ? "bg-emerald-500/20 text-emerald-400" : ""}>
                         {card.is_active ? "Ativo" : "Inativo"}

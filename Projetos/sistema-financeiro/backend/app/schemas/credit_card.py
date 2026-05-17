@@ -1,11 +1,16 @@
 import datetime as dt
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
+
+CardType = Literal["credit", "debit"]
 
 
 class CreditCardCreate(BaseModel):
     name: str = Field(min_length=2, max_length=120)
     brand: str = Field(default="outro", min_length=2, max_length=50)
+    card_type: CardType = "credit"
     last_four: str = Field(pattern=r"^\d{4}$")
     closing_day: int = Field(ge=1, le=31)
     due_day: int = Field(ge=1, le=31)
@@ -14,6 +19,7 @@ class CreditCardCreate(BaseModel):
 class CreditCardUpdate(BaseModel):
     name: str = Field(min_length=2, max_length=120)
     brand: str = Field(default="outro", min_length=2, max_length=50)
+    card_type: CardType = "credit"
     last_four: str = Field(pattern=r"^\d{4}$")
     closing_day: int = Field(ge=1, le=31)
     due_day: int = Field(ge=1, le=31)
@@ -26,6 +32,7 @@ class CreditCardResponse(BaseModel):
     id: int
     name: str
     brand: str
+    card_type: CardType
     last_four: str
     closing_day: int
     due_day: int

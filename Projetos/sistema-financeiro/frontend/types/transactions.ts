@@ -41,6 +41,7 @@ export type TransactionSummary = {
     id: number;
     name: string;
     brand: string;
+    card_type: "credit" | "debit";
     last_four: string;
     closing_day: number;
     due_day: number;
@@ -51,6 +52,7 @@ export type TransactionSummary = {
   export type CreditCardCreate = {
     name: string;
     brand: string;
+    card_type: "credit" | "debit";
     last_four: string;
     closing_day: number;
     due_day: number;

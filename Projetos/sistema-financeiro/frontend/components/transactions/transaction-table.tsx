@@ -130,6 +130,12 @@ export function TransactionTable({
     return categories.filter((category) => category.type === type);
   }, [categories, type]);
 
+  const isCardPayment = paymentMethod === "credit_card" || paymentMethod === "debit_card";
+  const availableCards = useMemo(() => {
+    const expectedCardType = paymentMethod === "credit_card" ? "credit" : "debit";
+    return creditCards.filter((card) => card.card_type === expectedCardType);
+  }, [creditCards, paymentMethod]);
+
   const sortedTransactions = useMemo(() => {
     if (!sortConfig.field) {
       return transactions;
@@ -247,8 +253,8 @@ export function TransactionTable({
       return;
     }
 
-    if (paymentMethod === "credit_card" && !creditCardId) {
-      setError("Selecione um cartão de crédito.");
+    if (isCardPayment && !creditCardId) {
+      setError("Selecione o cartão usado nessa transação.");
       return;
     }
 
@@ -267,7 +273,7 @@ export function TransactionTable({
           installment_number: installmentNumber,
           installment_total: installmentTotal,
           category_id: Number(categoryId),
-          credit_card_id: paymentMethod === "credit_card" ? Number(creditCardId) : null,
+          credit_card_id: isCardPayment ? Number(creditCardId) : null,
           date,
         },
       },
@@ -339,8 +345,8 @@ export function TransactionTable({
       return;
     }
 
-    if (paymentMethod === "credit_card" && !creditCardId) {
-      setError("Selecione um cartão de crédito.");
+    if (isCardPayment && !creditCardId) {
+      setError("Selecione o cartão usado nessa transação.");
       return;
     }
 
@@ -359,7 +365,7 @@ export function TransactionTable({
           installment_number: installmentNumber,
           installment_total: installmentTotal,
           category_id: Number(categoryId),
-          credit_card_id: paymentMethod === "credit_card" ? Number(creditCardId) : null,
+          credit_card_id: isCardPayment ? Number(creditCardId) : null,
           date,
         },
       },
@@ -622,9 +628,7 @@ export function TransactionTable({
                             value={paymentMethod}
                             onValueChange={(value) => {
                               setPaymentMethod(value as PaymentMethod);
-                              if (value !== "credit_card") {
-                                setCreditCardId("");
-                              }
+                              setCreditCardId("");
                             }}
                           >
                             <SelectTrigger className="border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
@@ -648,13 +652,13 @@ export function TransactionTable({
 
                       <TableCell className="min-w-[210px] text-slate-700 dark:text-slate-300">
                         {isEditing ? (
-                          paymentMethod === "credit_card" ? (
+                          isCardPayment ? (
                             <Select value={creditCardId} onValueChange={setCreditCardId}>
                               <SelectTrigger className="border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
                                 <SelectValue placeholder="Selecione o cartão" />
                               </SelectTrigger>
                               <SelectContent>
-                                {creditCards.map((card) => (
+                                {availableCards.map((card) => (
                                   <SelectItem key={card.id} value={String(card.id)}>
                                     {`${card.name} •••• ${card.last_four}`}
                                   </SelectItem>
@@ -664,7 +668,8 @@ export function TransactionTable({
                           ) : (
                             "-"
                           )
-                        ) : transaction.payment_method === "credit_card" &&
+                        ) : (transaction.payment_method === "credit_card" ||
+                          transaction.payment_method === "debit_card") &&
                           transaction.credit_card ? (
                           `${transaction.credit_card.name} •••• ${transaction.credit_card.last_four}`
                         ) : (

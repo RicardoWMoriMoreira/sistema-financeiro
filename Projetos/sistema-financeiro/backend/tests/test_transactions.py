@@ -48,6 +48,71 @@ def test_create_transaction_invalid_amount(client, sample_category):
     assert response.status_code == 422
 
 
+def test_create_debit_card_transaction(client, sample_category):
+    card_response = client.post(
+        "/credit-cards",
+        json={
+            "name": "Conta principal",
+            "brand": "Visa",
+            "card_type": "debit",
+            "last_four": "4321",
+            "closing_day": 1,
+            "due_day": 1,
+        },
+    )
+    card = card_response.json()
+
+    response = client.post(
+        "/transactions",
+        json={
+            "description": "Compra no débito",
+            "amount": "70.00",
+            "type": "expense",
+            "payment_method": "debit_card",
+            "category_id": sample_category["id"],
+            "credit_card_id": card["id"],
+            "date": "2026-05-07",
+        },
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["payment_method"] == "debit_card"
+    assert data["credit_card_id"] == card["id"]
+    assert data["credit_card"]["card_type"] == "debit"
+
+
+def test_create_transaction_rejects_wrong_card_type(client, sample_category):
+    card_response = client.post(
+        "/credit-cards",
+        json={
+            "name": "Cartão débito",
+            "brand": "Visa",
+            "card_type": "debit",
+            "last_four": "4321",
+            "closing_day": 1,
+            "due_day": 1,
+        },
+    )
+    card = card_response.json()
+
+    response = client.post(
+        "/transactions",
+        json={
+            "description": "Compra no crédito",
+            "amount": "70.00",
+            "type": "expense",
+            "payment_method": "credit_card",
+            "category_id": sample_category["id"],
+            "credit_card_id": card["id"],
+            "date": "2026-05-07",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "O tipo do cartão não corresponde à forma de pagamento."
+
+
 def test_list_transactions(client, sample_transaction):
     response = client.get("/transactions")
     

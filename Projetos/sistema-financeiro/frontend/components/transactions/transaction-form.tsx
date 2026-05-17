@@ -73,6 +73,12 @@ export function TransactionForm({ categories, creditCards }: TransactionFormProp
     return categories.filter((category) => category.type === type);
   }, [categories, type]);
 
+  const isCardPayment = paymentMethod === "credit_card" || paymentMethod === "debit_card";
+  const availableCards = useMemo(() => {
+    const expectedCardType = paymentMethod === "credit_card" ? "credit" : "debit";
+    return creditCards.filter((card) => card.card_type === expectedCardType);
+  }, [creditCards, paymentMethod]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -93,8 +99,8 @@ export function TransactionForm({ categories, creditCards }: TransactionFormProp
       return;
     }
 
-    if (paymentMethod === "credit_card" && !creditCardId) {
-      setError("Selecione o cartão de crédito.");
+    if (isCardPayment && !creditCardId) {
+      setError("Selecione o cartão usado nessa transação.");
       return;
     }
 
@@ -158,7 +164,7 @@ export function TransactionForm({ categories, creditCards }: TransactionFormProp
           payment_status: paymentStatus,
           installment_total: parsedInstallments,
           category_id: Number(categoryId),
-          credit_card_id: paymentMethod === "credit_card" ? Number(creditCardId) : null,
+          credit_card_id: isCardPayment ? Number(creditCardId) : null,
           date,
         },
         {
@@ -266,9 +272,7 @@ export function TransactionForm({ categories, creditCards }: TransactionFormProp
               value={paymentMethod}
               onValueChange={(value) => {
                 setPaymentMethod(value as PaymentMethod);
-                if (value !== "credit_card") {
-                  setCreditCardId("");
-                }
+                setCreditCardId("");
               }}
             >
               <SelectTrigger className="border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
@@ -284,20 +288,20 @@ export function TransactionForm({ categories, creditCards }: TransactionFormProp
             </Select>
           </div>
 
-          {paymentMethod === "credit_card" && (
+          {isCardPayment && (
             <div className="space-y-2">
               <Label>Cartão</Label>
               <Select
                 value={creditCardId}
                 onValueChange={setCreditCardId}
-                disabled={creditCards.length === 0}
+                disabled={availableCards.length === 0}
               >
                 <SelectTrigger className="border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
                   <SelectValue placeholder="Selecione o cartão" />
                 </SelectTrigger>
 
                 <SelectContent>
-                  {creditCards.map((card) => (
+                  {availableCards.map((card) => (
                     <SelectItem key={card.id} value={String(card.id)}>
                       {`${card.name} •••• ${card.last_four}`}
                     </SelectItem>
@@ -411,10 +415,10 @@ export function TransactionForm({ categories, creditCards }: TransactionFormProp
             </p>
           )}
 
-          {paymentMethod === "credit_card" && creditCards.length === 0 && (
+          {isCardPayment && availableCards.length === 0 && (
             <p className="text-sm text-amber-600 dark:text-amber-400 md:col-span-2">
-              Nenhum cartão de crédito ativo cadastrado. Cadastre um cartão na aba
-              Cartões para usar esta opção.
+              Nenhum cartão {paymentMethod === "credit_card" ? "de crédito" : "de débito"} ativo cadastrado.
+              Cadastre um cartão na aba Cartões para usar esta opção.
             </p>
           )}
 

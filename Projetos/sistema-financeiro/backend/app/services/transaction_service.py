@@ -46,6 +46,34 @@ def validate_category_for_transaction(
     return category.type == transaction_type
 
 
+def validate_card_for_transaction(
+    db: Session,
+    payment_method: Literal["credit_card", "debit_card", "cash", "pix"],
+    credit_card_id: int | None,
+    user_id: Optional[int] = None,
+) -> int | None:
+    if payment_method not in ("credit_card", "debit_card"):
+        return None
+
+    if credit_card_id is None:
+        raise ValueError("Selecione um cartão para essa transação.")
+
+    card = credit_card_repository.find_credit_card_by_id(
+        db=db,
+        card_id=credit_card_id,
+        user_id=user_id,
+    )
+
+    if card is None or not card.is_active:
+        raise ValueError("Cartão inválido ou inativo.")
+
+    expected_type = "credit" if payment_method == "credit_card" else "debit"
+    if card.card_type != expected_type:
+        raise ValueError("O tipo do cartão não corresponde à forma de pagamento.")
+
+    return credit_card_id
+
+
 def list_transactions(
     db: Session,
     user_id: Optional[int] = None,
@@ -204,20 +232,13 @@ def create_transaction(
     transaction: TransactionCreate,
     user_id: Optional[int] = None,
 ) -> TransactionWithCategoryResponse | None:
-    if transaction.payment_method == "credit_card" and transaction.credit_card_id is None:
-        raise ValueError("Selecione um cartão de crédito para essa transação.")
-
-    if transaction.payment_method != "credit_card":
-        transaction = transaction.model_copy(update={"credit_card_id": None})
-
-    if transaction.credit_card_id is not None:
-        credit_card = credit_card_repository.find_credit_card_by_id(
-            db=db,
-            card_id=transaction.credit_card_id,
-            user_id=user_id,
-        )
-        if credit_card is None or not credit_card.is_active:
-            raise ValueError("Cartão de crédito inválido ou inativo.")
+    credit_card_id = validate_card_for_transaction(
+        db=db,
+        payment_method=transaction.payment_method,
+        credit_card_id=transaction.credit_card_id,
+        user_id=user_id,
+    )
+    transaction = transaction.model_copy(update={"credit_card_id": credit_card_id})
 
     is_valid_category = validate_category_for_transaction(
         db=db,
@@ -286,20 +307,13 @@ def update_transaction(
     transaction_data: TransactionUpdate,
     user_id: Optional[int] = None,
 ) -> Optional[TransactionWithCategoryResponse]:
-    if transaction_data.payment_method == "credit_card" and transaction_data.credit_card_id is None:
-        raise ValueError("Selecione um cartão de crédito para essa transação.")
-
-    if transaction_data.payment_method != "credit_card":
-        transaction_data = transaction_data.model_copy(update={"credit_card_id": None})
-
-    if transaction_data.credit_card_id is not None:
-        credit_card = credit_card_repository.find_credit_card_by_id(
-            db=db,
-            card_id=transaction_data.credit_card_id,
-            user_id=user_id,
-        )
-        if credit_card is None or not credit_card.is_active:
-            raise ValueError("Cartão de crédito inválido ou inativo.")
+    credit_card_id = validate_card_for_transaction(
+        db=db,
+        payment_method=transaction_data.payment_method,
+        credit_card_id=transaction_data.credit_card_id,
+        user_id=user_id,
+    )
+    transaction_data = transaction_data.model_copy(update={"credit_card_id": credit_card_id})
 
     is_valid_category = validate_category_for_transaction(
         db=db,
@@ -330,20 +344,13 @@ def update_installment_group(
     transaction_data: TransactionUpdate,
     user_id: Optional[int] = None,
 ) -> TransactionGroupActionResponse | None:
-    if transaction_data.payment_method == "credit_card" and transaction_data.credit_card_id is None:
-        raise ValueError("Selecione um cartão de crédito para essa transação.")
-
-    if transaction_data.payment_method != "credit_card":
-        transaction_data = transaction_data.model_copy(update={"credit_card_id": None})
-
-    if transaction_data.credit_card_id is not None:
-        credit_card = credit_card_repository.find_credit_card_by_id(
-            db=db,
-            card_id=transaction_data.credit_card_id,
-            user_id=user_id,
-        )
-        if credit_card is None or not credit_card.is_active:
-            raise ValueError("Cartão de crédito inválido ou inativo.")
+    credit_card_id = validate_card_for_transaction(
+        db=db,
+        payment_method=transaction_data.payment_method,
+        credit_card_id=transaction_data.credit_card_id,
+        user_id=user_id,
+    )
+    transaction_data = transaction_data.model_copy(update={"credit_card_id": credit_card_id})
 
     transactions = transaction_repository.find_transactions_by_group_id(
         db=db,
