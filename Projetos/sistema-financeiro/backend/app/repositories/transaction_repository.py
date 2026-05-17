@@ -67,6 +67,7 @@ def list_transactions(
         end_date=end_date,
         search=search,
     ).options(selectinload(TransactionModel.category))
+    statement = statement.options(selectinload(TransactionModel.credit_card))
 
     statement = statement.order_by(
         TransactionModel.date.desc(),
@@ -105,6 +106,7 @@ def list_transactions_paginated(
     statement = (
         base_query
         .options(selectinload(TransactionModel.category))
+        .options(selectinload(TransactionModel.credit_card))
         .order_by(
             TransactionModel.date.desc(),
             TransactionModel.id.desc(),
@@ -126,6 +128,7 @@ def find_transaction_by_id(
     statement = (
         select(TransactionModel)
         .options(selectinload(TransactionModel.category))
+        .options(selectinload(TransactionModel.credit_card))
         .where(TransactionModel.id == transaction_id)
     )
 
@@ -143,6 +146,7 @@ def find_transactions_by_group_id(
     statement = (
         select(TransactionModel)
         .options(selectinload(TransactionModel.category))
+        .options(selectinload(TransactionModel.credit_card))
         .where(TransactionModel.installment_group_id == group_id)
         .order_by(TransactionModel.installment_number.asc(), TransactionModel.id.asc())
     )
@@ -170,6 +174,7 @@ def create_transaction(
         installment_number=transaction.installment_number,
         installment_total=transaction.installment_total,
         category_id=transaction.category_id,
+        credit_card_id=transaction.credit_card_id,
         date=transaction.date,
         user_id=user_id,
     )
@@ -215,6 +220,7 @@ def update_transaction(
     transaction.installment_number = transaction_data.installment_number
     transaction.installment_total = transaction_data.installment_total
     transaction.category_id = transaction_data.category_id
+    transaction.credit_card_id = transaction_data.credit_card_id
     transaction.date = transaction_data.date
 
     db.commit()

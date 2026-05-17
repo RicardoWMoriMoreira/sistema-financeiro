@@ -603,11 +603,17 @@ def post_transaction(
     db: Session = Depends(get_db),
     user_id: Optional[int] = Depends(get_current_user_id),
 ):
-    new_transaction = create_transaction(
-        db=db,
-        transaction=transaction,
-        user_id=user_id,
-    )
+    try:
+        new_transaction = create_transaction(
+            db=db,
+            transaction=transaction,
+            user_id=user_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
 
     if new_transaction is None:
         raise HTTPException(
@@ -634,10 +640,10 @@ def put_transaction(
             transaction_data=transaction_data,
             user_id=user_id,
         )
-    except ValueError:
+    except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Categoria não encontrada ou incompatível com o tipo da transação",
+            detail=str(exc),
         )
 
     if transaction is None:
@@ -688,10 +694,10 @@ def put_installment_group(
             transaction_data=transaction_data,
             user_id=user_id,
         )
-    except ValueError:
+    except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Categoria não encontrada ou incompatível com o tipo da transação",
+            detail=str(exc),
         )
 
     if result is None:

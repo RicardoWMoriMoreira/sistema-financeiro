@@ -17,6 +17,14 @@ const navigationItems = [
     label: "Recorrentes",
   },
   {
+    href: "/cofrinhos",
+    label: "Cofrinhos",
+  },
+  {
+    href: "/credit-cards",
+    label: "Cartões",
+  },
+  {
     href: "/categories",
     label: "Categorias",
   },

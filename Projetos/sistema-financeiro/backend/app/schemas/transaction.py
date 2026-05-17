@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.category import CategoryResponse
+from app.schemas.credit_card import CreditCardResponse
 
 PaymentMethod = Literal["credit_card", "debit_card", "cash", "pix"]
 SpendingProfile = Literal["fixed", "variable"]
@@ -24,6 +25,7 @@ class TransactionCreate(BaseModel):
     installment_number: int = Field(default=1, ge=1, le=360)
     installment_total: int = Field(default=1, ge=1, le=360)
     category_id: int
+    credit_card_id: int | None = None
     date: dt.date
 
 
@@ -39,6 +41,7 @@ class TransactionUpdate(BaseModel):
     installment_number: int = Field(default=1, ge=1, le=360)
     installment_total: int = Field(default=1, ge=1, le=360)
     category_id: int
+    credit_card_id: int | None = None
     date: dt.date
 
 
@@ -57,6 +60,7 @@ class TransactionResponse(BaseModel):
     installment_number: int
     installment_total: int
     category_id: int
+    credit_card_id: int | None
     date: dt.date
 
 
@@ -76,6 +80,8 @@ class TransactionWithCategoryResponse(BaseModel):
     installment_total: int
     category_id: int
     category: CategoryResponse
+    credit_card_id: int | None
+    credit_card: CreditCardResponse | None
     date: dt.date
 
 

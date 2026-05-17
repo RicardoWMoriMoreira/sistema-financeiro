@@ -7,7 +7,9 @@ from app.config import get_settings
 from app.rate_limiter import limiter
 from app.routes.budgets import router as budgets_router
 from app.routes.categories import router as categories_router
+from app.routes.credit_cards import router as credit_cards_router
 from app.routes.goals import router as goals_router
+from app.routes.piggy_banks import router as piggy_banks_router
 from app.routes.recurring_transactions import router as recurring_transactions_router
 from app.routes.transactions import router as transactions_router
 from app.routes.users import router as users_router
@@ -54,7 +56,9 @@ def health_check():
 
 app.include_router(budgets_router)
 app.include_router(categories_router)
+app.include_router(credit_cards_router)
 app.include_router(goals_router)
+app.include_router(piggy_banks_router)
 app.include_router(recurring_transactions_router)
 app.include_router(transactions_router)
 app.include_router(users_router)

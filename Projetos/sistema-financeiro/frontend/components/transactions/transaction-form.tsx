@@ -24,10 +24,12 @@ import type {
   PaymentStatus,
   SpendingProfile,
   TransactionType,
+  CreditCard,
 } from "@/types/transactions";
 
 type TransactionFormProps = {
   categories: Category[];
+  creditCards: CreditCard[];
 };
 
 function getTodayInputValue(): string {
@@ -47,7 +49,7 @@ const frequencyLabels: Record<FrequencyType, string> = {
   yearly: "Anual",
 };
 
-export function TransactionForm({ categories }: TransactionFormProps) {
+export function TransactionForm({ categories, creditCards }: TransactionFormProps) {
   const router = useRouter();
   const createMutation = useCreateTransaction();
 
@@ -59,6 +61,7 @@ export function TransactionForm({ categories }: TransactionFormProps) {
   const [dueDate, setDueDate] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("pending");
   const [installmentTotal, setInstallmentTotal] = useState("1");
+  const [creditCardId, setCreditCardId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [date, setDate] = useState(getTodayInputValue());
   const [isRecurring, setIsRecurring] = useState(false);
@@ -90,6 +93,11 @@ export function TransactionForm({ categories }: TransactionFormProps) {
       return;
     }
 
+    if (paymentMethod === "credit_card" && !creditCardId) {
+      setError("Selecione o cartão de crédito.");
+      return;
+    }
+
     const parsedInstallments = Number(installmentTotal);
     if (
       Number.isNaN(parsedInstallments) ||
@@ -110,6 +118,7 @@ export function TransactionForm({ categories }: TransactionFormProps) {
       setDueDate("");
       setPaymentStatus("pending");
       setInstallmentTotal("1");
+      setCreditCardId("");
       setIsRecurring(false);
       setFrequency("monthly");
       router.refresh();
@@ -149,6 +158,7 @@ export function TransactionForm({ categories }: TransactionFormProps) {
           payment_status: paymentStatus,
           installment_total: parsedInstallments,
           category_id: Number(categoryId),
+          credit_card_id: paymentMethod === "credit_card" ? Number(creditCardId) : null,
           date,
         },
         {
@@ -254,7 +264,12 @@ export function TransactionForm({ categories }: TransactionFormProps) {
             <Label>Forma de pagamento</Label>
             <Select
               value={paymentMethod}
-              onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
+              onValueChange={(value) => {
+                setPaymentMethod(value as PaymentMethod);
+                if (value !== "credit_card") {
+                  setCreditCardId("");
+                }
+              }}
             >
               <SelectTrigger className="border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
                 <SelectValue placeholder="Selecione a forma de pagamento" />
@@ -268,6 +283,29 @@ export function TransactionForm({ categories }: TransactionFormProps) {
               </SelectContent>
             </Select>
           </div>
+
+          {paymentMethod === "credit_card" && (
+            <div className="space-y-2">
+              <Label>Cartão</Label>
+              <Select
+                value={creditCardId}
+                onValueChange={setCreditCardId}
+                disabled={creditCards.length === 0}
+              >
+                <SelectTrigger className="border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
+                  <SelectValue placeholder="Selecione o cartão" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {creditCards.map((card) => (
+                    <SelectItem key={card.id} value={String(card.id)}>
+                      {`${card.name} •••• ${card.last_four}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Custo</Label>
@@ -370,6 +408,13 @@ export function TransactionForm({ categories }: TransactionFormProps) {
             <p className="text-sm text-amber-600 dark:text-amber-400 md:col-span-2">
               Nenhuma categoria disponível para esse tipo. Cadastre categorias
               ou rode o seed no backend.
+            </p>
+          )}
+
+          {paymentMethod === "credit_card" && creditCards.length === 0 && (
+            <p className="text-sm text-amber-600 dark:text-amber-400 md:col-span-2">
+              Nenhum cartão de crédito ativo cadastrado. Cadastre um cartão na aba
+              Cartões para usar esta opção.
             </p>
           )}
 

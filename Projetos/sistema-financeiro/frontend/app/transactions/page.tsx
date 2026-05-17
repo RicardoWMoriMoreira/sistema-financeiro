@@ -4,6 +4,7 @@ import { TransactionFilters } from "@/components/transactions/transaction-filter
 import { TransactionForm } from "@/components/transactions/transaction-form";
 import { TransactionTable } from "@/components/transactions/transaction-table";
 import {
+  getCreditCards,
   getCategories,
   getTransactionStatusCounts,
   getTransactionSummary,
@@ -41,11 +42,12 @@ export default async function TransactionsPage({
   delete filtersForCounts.page;
   delete filtersForCounts.per_page;
 
-  const [summary, paginatedTransactions, categories, statusCounts] = await Promise.all([
+  const [summary, paginatedTransactions, categories, statusCounts, creditCards] = await Promise.all([
     getTransactionSummary(filters),
     getTransactionsPaginated(filtersWithPagination),
     getCategories(),
     getTransactionStatusCounts(filtersForCounts),
+    getCreditCards(),
   ]);
 
   return (
@@ -63,12 +65,13 @@ export default async function TransactionsPage({
         />
 
         <div id="nova-transacao">
-          <TransactionForm categories={categories} />
+          <TransactionForm categories={categories} creditCards={creditCards.filter((card) => card.is_active)} />
         </div>
 
         <TransactionTable
           transactions={paginatedTransactions.items}
           categories={categories}
+          creditCards={creditCards}
           pagination={{
             currentPage: paginatedTransactions.page,
             totalPages: paginatedTransactions.total_pages,

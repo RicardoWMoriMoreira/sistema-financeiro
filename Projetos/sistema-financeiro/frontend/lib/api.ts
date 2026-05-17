@@ -6,6 +6,9 @@ import type {
   Category,
   CategoryCreate,
   CategoryUpdate,
+  CreditCard,
+  CreditCardCreate,
+  CreditCardUpdate,
   Goal,
   GoalCreate,
   GoalProgress,
@@ -14,6 +17,9 @@ import type {
   HistoryGroupBy,
   HistoryPeriod,
   PaginatedTransactions,
+  PiggyBank,
+  PiggyBankCreate,
+  PiggyBankUpdate,
   ProcessRecurringResult,
   RecurringTransaction,
   RecurringTransactionCreate,
@@ -358,6 +364,53 @@ export async function deleteCategory(
   );
 }
 
+export async function getCreditCards(): Promise<CreditCard[]> {
+  return requestJsonNoStore<CreditCard[]>("/credit-cards", "Erro ao buscar cartões.");
+}
+
+export async function createCreditCard(payload: CreditCardCreate): Promise<CreditCard> {
+  return requestJson<CreditCard>(
+    "/credit-cards",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+    "Erro ao cadastrar cartão.",
+  );
+}
+
+export async function updateCreditCard(
+  cardId: number,
+  payload: CreditCardUpdate,
+): Promise<CreditCard> {
+  return requestJson<CreditCard>(
+    `/credit-cards/${cardId}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+    "Erro ao editar cartão.",
+  );
+}
+
+export async function toggleCreditCard(cardId: number): Promise<CreditCard> {
+  return requestJson<CreditCard>(
+    `/credit-cards/${cardId}/toggle`,
+    { method: "PATCH" },
+    "Erro ao alterar status do cartão.",
+  );
+}
+
+export async function deleteCreditCard(cardId: number): Promise<CreditCard> {
+  return requestJson<CreditCard>(
+    `/credit-cards/${cardId}`,
+    { method: "DELETE" },
+    "Erro ao remover cartão.",
+  );
+}
+
 export function getExportCsvUrl(filters?: TransactionFilters): string {
   const queryString = buildTransactionQueryString(filters);
   return buildApiUrl(`/transactions/export/csv${queryString}`);
@@ -573,6 +626,60 @@ export async function deleteBudget(budgetId: number): Promise<Budget> {
       method: "DELETE",
     },
     "Erro ao deletar orçamento.",
+  );
+}
+
+export async function getPiggyBanks(): Promise<PiggyBank[]> {
+  return requestJsonNoStore<PiggyBank[]>("/piggy-banks", "Erro ao buscar cofrinhos.");
+}
+
+export async function createPiggyBank(payload: PiggyBankCreate): Promise<PiggyBank> {
+  return requestJson<PiggyBank>(
+    "/piggy-banks",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+    "Erro ao criar cofrinho.",
+  );
+}
+
+export async function updatePiggyBank(
+  piggyBankId: number,
+  payload: PiggyBankUpdate,
+): Promise<PiggyBank> {
+  return requestJson<PiggyBank>(
+    `/piggy-banks/${piggyBankId}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+    "Erro ao editar cofrinho.",
+  );
+}
+
+export async function updatePiggyBankBalance(
+  piggyBankId: number,
+  amountDelta: string,
+): Promise<PiggyBank> {
+  return requestJson<PiggyBank>(
+    `/piggy-banks/${piggyBankId}/balance`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount_delta: amountDelta }),
+    },
+    "Erro ao atualizar saldo do cofrinho.",
+  );
+}
+
+export async function deletePiggyBank(piggyBankId: number): Promise<PiggyBank> {
+  return requestJson<PiggyBank>(
+    `/piggy-banks/${piggyBankId}`,
+    { method: "DELETE" },
+    "Erro ao excluir cofrinho.",
   );
 }
 

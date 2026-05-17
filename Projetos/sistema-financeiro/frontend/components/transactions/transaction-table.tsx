@@ -52,6 +52,7 @@ import type {
   SpendingProfile,
   Transaction,
   TransactionType,
+  CreditCard,
 } from "@/types/transactions";
 
 type SortField = "description" | "category" | "type" | "date" | "amount";
@@ -73,6 +74,7 @@ type PaginationInfo = {
 type TransactionTableProps = {
   transactions: Transaction[];
   categories: Category[];
+  creditCards: CreditCard[];
   pagination?: PaginationInfo;
   basePath?: string;
 };
@@ -80,6 +82,7 @@ type TransactionTableProps = {
 export function TransactionTable({
   transactions,
   categories,
+  creditCards,
   pagination,
   basePath = "/transactions",
 }: TransactionTableProps) {
@@ -104,6 +107,7 @@ export function TransactionTable({
   const [installmentGroupId, setInstallmentGroupId] = useState<string | null>(null);
   const [installmentNumber, setInstallmentNumber] = useState(1);
   const [installmentTotal, setInstallmentTotal] = useState(1);
+  const [creditCardId, setCreditCardId] = useState("");
   const [editScope, setEditScope] = useState<EditScope>("single");
   const [categoryId, setCategoryId] = useState("");
   const [date, setDate] = useState("");
@@ -195,6 +199,7 @@ export function TransactionTable({
     setInstallmentGroupId(transaction.installment_group_id);
     setInstallmentNumber(transaction.installment_number);
     setInstallmentTotal(transaction.installment_total);
+    setCreditCardId(transaction.credit_card_id ? String(transaction.credit_card_id) : "");
     setEditScope("single");
     setCategoryId(String(transaction.category_id));
     setDate(transaction.date);
@@ -212,6 +217,7 @@ export function TransactionTable({
     setInstallmentGroupId(null);
     setInstallmentNumber(1);
     setInstallmentTotal(1);
+    setCreditCardId("");
     setEditScope("single");
     setCategoryId("");
     setDate("");
@@ -241,6 +247,11 @@ export function TransactionTable({
       return;
     }
 
+    if (paymentMethod === "credit_card" && !creditCardId) {
+      setError("Selecione um cartão de crédito.");
+      return;
+    }
+
     updateMutation.mutate(
       {
         id: transactionId,
@@ -256,6 +267,7 @@ export function TransactionTable({
           installment_number: installmentNumber,
           installment_total: installmentTotal,
           category_id: Number(categoryId),
+          credit_card_id: paymentMethod === "credit_card" ? Number(creditCardId) : null,
           date,
         },
       },
@@ -327,6 +339,11 @@ export function TransactionTable({
       return;
     }
 
+    if (paymentMethod === "credit_card" && !creditCardId) {
+      setError("Selecione um cartão de crédito.");
+      return;
+    }
+
     updateGroupMutation.mutate(
       {
         groupId,
@@ -342,6 +359,7 @@ export function TransactionTable({
           installment_number: installmentNumber,
           installment_total: installmentTotal,
           category_id: Number(categoryId),
+          credit_card_id: paymentMethod === "credit_card" ? Number(creditCardId) : null,
           date,
         },
       },
@@ -469,6 +487,9 @@ export function TransactionTable({
                   </TableHead>
                   <TableHead className="text-slate-600 dark:text-slate-400">
                     Pagamento
+                  </TableHead>
+                  <TableHead className="text-slate-600 dark:text-slate-400">
+                    Cartão
                   </TableHead>
                   <TableHead className="text-slate-600 dark:text-slate-400">
                     Custo
@@ -599,9 +620,12 @@ export function TransactionTable({
                         {isEditing ? (
                           <Select
                             value={paymentMethod}
-                            onValueChange={(value) =>
-                              setPaymentMethod(value as PaymentMethod)
-                            }
+                            onValueChange={(value) => {
+                              setPaymentMethod(value as PaymentMethod);
+                              if (value !== "credit_card") {
+                                setCreditCardId("");
+                              }
+                            }}
                           >
                             <SelectTrigger className="border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
                               <SelectValue placeholder="Pagamento" />
@@ -619,6 +643,32 @@ export function TransactionTable({
                           </Select>
                         ) : (
                           formatPaymentMethod(transaction.payment_method)
+                        )}
+                      </TableCell>
+
+                      <TableCell className="min-w-[210px] text-slate-700 dark:text-slate-300">
+                        {isEditing ? (
+                          paymentMethod === "credit_card" ? (
+                            <Select value={creditCardId} onValueChange={setCreditCardId}>
+                              <SelectTrigger className="border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950">
+                                <SelectValue placeholder="Selecione o cartão" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {creditCards.map((card) => (
+                                  <SelectItem key={card.id} value={String(card.id)}>
+                                    {`${card.name} •••• ${card.last_four}`}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            "-"
+                          )
+                        ) : transaction.payment_method === "credit_card" &&
+                          transaction.credit_card ? (
+                          `${transaction.credit_card.name} •••• ${transaction.credit_card.last_four}`
+                        ) : (
+                          "-"
                         )}
                       </TableCell>
 

@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 from sqlalchemy.orm import Session
 
 from app.models.transaction import TransactionModel
-from app.repositories import category_repository, transaction_repository
+from app.repositories import category_repository, credit_card_repository, transaction_repository
 from app.schemas.transaction import (
     PaginatedTransactionsResponse,
     TransactionCreate,
@@ -204,6 +204,21 @@ def create_transaction(
     transaction: TransactionCreate,
     user_id: Optional[int] = None,
 ) -> TransactionWithCategoryResponse | None:
+    if transaction.payment_method == "credit_card" and transaction.credit_card_id is None:
+        raise ValueError("Selecione um cartão de crédito para essa transação.")
+
+    if transaction.payment_method != "credit_card":
+        transaction = transaction.model_copy(update={"credit_card_id": None})
+
+    if transaction.credit_card_id is not None:
+        credit_card = credit_card_repository.find_credit_card_by_id(
+            db=db,
+            card_id=transaction.credit_card_id,
+            user_id=user_id,
+        )
+        if credit_card is None or not credit_card.is_active:
+            raise ValueError("Cartão de crédito inválido ou inativo.")
+
     is_valid_category = validate_category_for_transaction(
         db=db,
         transaction_type=transaction.type,
@@ -249,6 +264,7 @@ def create_transaction(
             installment_number=installment_number,
             installment_total=installment_total,
             category_id=transaction.category_id,
+            credit_card_id=transaction.credit_card_id,
             date=transaction.date + relativedelta(months=index),
         )
 
@@ -270,6 +286,21 @@ def update_transaction(
     transaction_data: TransactionUpdate,
     user_id: Optional[int] = None,
 ) -> Optional[TransactionWithCategoryResponse]:
+    if transaction_data.payment_method == "credit_card" and transaction_data.credit_card_id is None:
+        raise ValueError("Selecione um cartão de crédito para essa transação.")
+
+    if transaction_data.payment_method != "credit_card":
+        transaction_data = transaction_data.model_copy(update={"credit_card_id": None})
+
+    if transaction_data.credit_card_id is not None:
+        credit_card = credit_card_repository.find_credit_card_by_id(
+            db=db,
+            card_id=transaction_data.credit_card_id,
+            user_id=user_id,
+        )
+        if credit_card is None or not credit_card.is_active:
+            raise ValueError("Cartão de crédito inválido ou inativo.")
+
     is_valid_category = validate_category_for_transaction(
         db=db,
         transaction_type=transaction_data.type,
@@ -299,6 +330,21 @@ def update_installment_group(
     transaction_data: TransactionUpdate,
     user_id: Optional[int] = None,
 ) -> TransactionGroupActionResponse | None:
+    if transaction_data.payment_method == "credit_card" and transaction_data.credit_card_id is None:
+        raise ValueError("Selecione um cartão de crédito para essa transação.")
+
+    if transaction_data.payment_method != "credit_card":
+        transaction_data = transaction_data.model_copy(update={"credit_card_id": None})
+
+    if transaction_data.credit_card_id is not None:
+        credit_card = credit_card_repository.find_credit_card_by_id(
+            db=db,
+            card_id=transaction_data.credit_card_id,
+            user_id=user_id,
+        )
+        if credit_card is None or not credit_card.is_active:
+            raise ValueError("Cartão de crédito inválido ou inativo.")
+
     transactions = transaction_repository.find_transactions_by_group_id(
         db=db,
         group_id=group_id,
@@ -334,6 +380,7 @@ def update_installment_group(
         transaction.spending_profile = transaction_data.spending_profile
         transaction.payment_status = transaction_data.payment_status
         transaction.category_id = transaction_data.category_id
+        transaction.credit_card_id = transaction_data.credit_card_id
         transaction.date = base_date + relativedelta(months=months_offset)
         transaction.due_date = (
             base_due_date + relativedelta(months=months_offset)

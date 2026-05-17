@@ -46,6 +46,11 @@ class TransactionModel(Base):
         nullable=False,
         index=True,
     )
+    credit_card_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("credit_cards.id"),
+        nullable=True,
+        index=True,
+    )
     date: Mapped[dt.date] = mapped_column(
         Date,
         nullable=False,
@@ -83,4 +88,5 @@ class TransactionModel(Base):
     category: Mapped["CategoryModel"] = relationship(
         back_populates="transactions",
     )
+    credit_card: Mapped[Optional["CreditCardModel"]] = relationship()
     user: Mapped[Optional["UserModel"]] = relationship()

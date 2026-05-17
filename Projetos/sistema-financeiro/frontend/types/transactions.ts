@@ -36,6 +36,29 @@ export type TransactionSummary = {
     name: string;
     type: TransactionType;
   };
+
+  export type CreditCard = {
+    id: number;
+    name: string;
+    brand: string;
+    last_four: string;
+    closing_day: number;
+    due_day: number;
+    is_active: boolean;
+    created_at: string;
+  };
+
+  export type CreditCardCreate = {
+    name: string;
+    brand: string;
+    last_four: string;
+    closing_day: number;
+    due_day: number;
+  };
+
+  export type CreditCardUpdate = CreditCardCreate & {
+    is_active: boolean;
+  };
   
   export type Transaction = {
     id: number;
@@ -50,7 +73,9 @@ export type TransactionSummary = {
     installment_number: number;
     installment_total: number;
     category_id: number;
+    credit_card_id: number | null;
     category: Category | null;
+    credit_card: CreditCard | null;
     date: string;
   };
   
@@ -64,6 +89,7 @@ export type TransactionSummary = {
     payment_status: PaymentStatus;
     installment_total?: number;
     category_id: number;
+    credit_card_id?: number | null;
     date: string;
   };
   
@@ -79,6 +105,7 @@ export type TransactionSummary = {
     installment_number?: number;
     installment_total?: number;
     category_id: number;
+    credit_card_id?: number | null;
     date: string;
   };
   
@@ -190,6 +217,31 @@ export type BudgetStatus = {
   remaining: string;
   percentage_used: string;
   is_exceeded: boolean;
+};
+
+export type PiggyBank = {
+  id: number;
+  name: string;
+  description: string | null;
+  target_amount: string;
+  current_amount: string;
+  progress_percentage: string;
+  remaining_amount: string;
+  created_at: string;
+};
+
+export type PiggyBankCreate = {
+  name: string;
+  description?: string | null;
+  target_amount: string;
+  current_amount?: string;
+};
+
+export type PiggyBankUpdate = {
+  name: string;
+  description?: string | null;
+  target_amount: string;
+  current_amount: string;
 };
 
   export type TransactionHistoryItem = {

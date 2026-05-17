@@ -8,7 +8,9 @@ from app.config import get_settings
 from app.database import Base
 from app.models.budget import BudgetModel
 from app.models.category import CategoryModel
+from app.models.credit_card import CreditCardModel
 from app.models.goal import GoalModel
+from app.models.piggy_bank import PiggyBankModel
 from app.models.recurring_transaction import RecurringTransactionModel
 from app.models.transaction import TransactionModel
 
