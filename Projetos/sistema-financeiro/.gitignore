@@ -14,3 +14,9 @@ backend/finance.db.backup
 
 # Editor
 .vscode/
+
+# Scripts e arquivos locais de desenvolvimento
+MANUAL.md
+check_db.py
+count_db.py
+reset_db.py
