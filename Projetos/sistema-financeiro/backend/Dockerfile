@@ -21,5 +21,8 @@ COPY . .
 # Expor porta
 EXPOSE 8000
 
-# Comando para rodar a aplicação
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Tornar o script executável e iniciar
+RUN chmod +x start.sh
+
+# Comando para rodar migrações e iniciar a aplicação
+CMD ["./start.sh"]
