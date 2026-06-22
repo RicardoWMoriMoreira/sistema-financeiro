@@ -21,6 +21,7 @@ import type {
   PiggyBankCreate,
   PiggyBankUpdate,
   ProcessRecurringResult,
+  ProjectionResponse,
   RecurringTransaction,
   RecurringTransactionCreate,
   RecurringTransactionUpdate,
@@ -768,5 +769,18 @@ export async function processRecurringTransactions(): Promise<ProcessRecurringRe
   return requestJsonNoStore<ProcessRecurringResult>(
     "/recurring-transactions/process",
     "Erro ao processar transações recorrentes.",
+  );
+}
+
+export async function getFinancialProjection(
+  historyMonths: number = 3,
+  projectionMonths: number = 3,
+): Promise<ProjectionResponse> {
+  const params = new URLSearchParams();
+  params.set("history_months", String(historyMonths));
+  params.set("projection_months", String(projectionMonths));
+  return requestJsonNoStore<ProjectionResponse>(
+    `/transactions/projection${toQueryString(params)}`,
+    "Erro ao buscar projeção financeira.",
   );
 }

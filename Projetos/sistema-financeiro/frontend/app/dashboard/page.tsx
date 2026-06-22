@@ -5,6 +5,7 @@ import { EvolutionChart } from "@/components/dashboard/evolution-chart";
 import { ExpenseByCategoryChart } from "@/components/dashboard/expense-by-category-chart";
 import { GoalsSummaryCard } from "@/components/dashboard/goals-summary-card";
 import { IncomeExpenseChart } from "@/components/dashboard/income-expense-chart";
+import { ProjectionChart } from "@/components/dashboard/projection-chart";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentTransactions } from "@/components/dashboard/recent-transactions";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
@@ -68,6 +69,8 @@ export default async function DashboardPage() {
         </section>
 
         <EvolutionChart />
+
+        <ProjectionChart />
 
         <QuickActions />
 

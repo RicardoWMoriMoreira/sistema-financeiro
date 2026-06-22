@@ -128,3 +128,18 @@ class TransactionHistoryResponse(BaseModel):
     items: list[TransactionHistoryItem]
     group_by: Literal["day", "week", "month"]
     period: str
+
+
+class ProjectionItem(BaseModel):
+    period: str
+    label: str
+    income: Decimal
+    expense: Decimal
+    balance: Decimal
+    is_projected: bool
+
+
+class ProjectionResponse(BaseModel):
+    items: list[ProjectionItem]
+    history_months: int
+    projection_months: int

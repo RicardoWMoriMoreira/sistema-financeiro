@@ -11,6 +11,8 @@ from app.models.transaction import TransactionModel
 from app.repositories import category_repository, credit_card_repository, transaction_repository
 from app.schemas.transaction import (
     PaginatedTransactionsResponse,
+    ProjectionItem,
+    ProjectionResponse,
     TransactionCreate,
     TransactionGroupActionResponse,
     TransactionHistoryItem,
@@ -507,4 +509,88 @@ def get_transactions_history(
         items=items,
         group_by=group_by,
         period=period,
+    )
+
+
+def get_financial_projection(
+    db: Session,
+    user_id: Optional[int] = None,
+    history_months: int = 3,
+    projection_months: int = 3,
+) -> ProjectionResponse:
+    today = dt.date.today()
+    month_names = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+
+    start_date = (today - relativedelta(months=history_months)).replace(day=1)
+
+    history = transaction_repository.get_transactions_history(
+        db=db,
+        user_id=user_id,
+        start_date=start_date,
+        end_date=today,
+        group_by="month",
+    )
+
+    items: list[ProjectionItem] = []
+
+    monthly_incomes: list[Decimal] = []
+    monthly_expenses: list[Decimal] = []
+
+    for item in history:
+        year, month = item["period"].split("-")
+        label = f"{month_names[int(month) - 1]}/{year[2:]}"
+        income = Decimal(str(item["income"]))
+        expense = Decimal(str(item["expense"]))
+        balance = income - expense
+
+        monthly_incomes.append(income)
+        monthly_expenses.append(expense)
+
+        items.append(ProjectionItem(
+            period=item["period"],
+            label=label,
+            income=income,
+            expense=expense,
+            balance=balance,
+            is_projected=False,
+        ))
+
+    if monthly_incomes:
+        avg_income = sum(monthly_incomes) / len(monthly_incomes)
+        avg_expense = sum(monthly_expenses) / len(monthly_expenses)
+
+        if len(monthly_incomes) >= 2:
+            income_trend = (monthly_incomes[-1] - monthly_incomes[0]) / len(monthly_incomes)
+            expense_trend = (monthly_expenses[-1] - monthly_expenses[0]) / len(monthly_expenses)
+        else:
+            income_trend = Decimal("0")
+            expense_trend = Decimal("0")
+    else:
+        avg_income = Decimal("0")
+        avg_expense = Decimal("0")
+        income_trend = Decimal("0")
+        expense_trend = Decimal("0")
+
+    for i in range(1, projection_months + 1):
+        future_date = today + relativedelta(months=i)
+        period = future_date.strftime("%Y-%m")
+        label = f"{month_names[future_date.month - 1]}/{str(future_date.year)[2:]} (proj.)"
+
+        proj_income = max(Decimal("0"), avg_income + income_trend * i).quantize(Decimal("0.01"))
+        proj_expense = max(Decimal("0"), avg_expense + expense_trend * i).quantize(Decimal("0.01"))
+        proj_balance = proj_income - proj_expense
+
+        items.append(ProjectionItem(
+            period=period,
+            label=label,
+            income=proj_income,
+            expense=proj_expense,
+            balance=proj_balance,
+            is_projected=True,
+        ))
+
+    return ProjectionResponse(
+        items=items,
+        history_months=history_months,
+        projection_months=projection_months,
     )

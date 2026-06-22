@@ -19,6 +19,7 @@ from app.rate_limiter import limiter, RATE_LIMIT_READ, RATE_LIMIT_WRITE
 from app.repositories import category_repository
 from app.schemas.transaction import (
     CsvImportResult,
+    ProjectionResponse,
     TransactionGroupActionResponse,
     PaginatedTransactionsResponse,
     TransactionCreate,
@@ -33,6 +34,7 @@ from app.services.transaction_service import (
     delete_installment_group,
     delete_transaction,
     find_transaction_by_id,
+    get_financial_projection,
     get_transaction_status_counts,
     get_transactions_history,
     get_transactions_summary,
@@ -548,6 +550,23 @@ def get_status_counts(
         start_date=start_date,
         end_date=end_date,
         search=search,
+    )
+
+
+@router.get("/projection", response_model=ProjectionResponse)
+@limiter.limit(RATE_LIMIT_READ)
+def get_projection(
+    request: Request,
+    history_months: int = Query(default=3, ge=1, le=12),
+    projection_months: int = Query(default=3, ge=1, le=6),
+    db: Session = Depends(get_db),
+    user_id: Optional[int] = Depends(get_current_user_id),
+):
+    return get_financial_projection(
+        db=db,
+        user_id=user_id,
+        history_months=history_months,
+        projection_months=projection_months,
     )
 
 

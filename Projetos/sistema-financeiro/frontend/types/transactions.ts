@@ -304,3 +304,18 @@ export type PiggyBankUpdate = {
     processed_count: number;
     transactions_created: number;
   };
+
+  export type ProjectionItem = {
+    period: string;
+    label: string;
+    income: string;
+    expense: string;
+    balance: string;
+    is_projected: boolean;
+  };
+
+  export type ProjectionResponse = {
+    items: ProjectionItem[];
+    history_months: number;
+    projection_months: number;
+  };
