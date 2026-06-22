@@ -15,6 +15,7 @@ from app.schemas.recurring_transaction import (
     RecurringTransactionWithCategoryResponse,
 )
 from app.schemas.transaction import TransactionCreate
+from app.utils.datetime import get_brazil_today
 
 
 def to_recurring_response(
@@ -168,7 +169,7 @@ def process_recurring_transactions(
     until_date: Optional[dt.date] = None,
 ) -> ProcessRecurringResult:
     if until_date is None:
-        until_date = dt.date.today()
+        until_date = get_brazil_today()
 
     pending = recurring_transaction_repository.find_pending_recurring_transactions(
         db=db,

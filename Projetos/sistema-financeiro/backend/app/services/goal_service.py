@@ -1,5 +1,3 @@
-import datetime as dt
-
 from decimal import Decimal
 from typing import Literal, Optional
 
@@ -15,6 +13,7 @@ from app.schemas.goal import (
     GoalUpdate,
     GoalUpdateAmount,
 )
+from app.utils.datetime import get_brazil_today
 
 
 def to_goal_response(
@@ -34,7 +33,7 @@ def calculate_progress(goal: GoalModel) -> GoalProgressResponse:
     if remaining_amount < 0:
         remaining_amount = Decimal("0.00")
 
-    today = dt.date.today()
+    today = get_brazil_today()
     days_remaining = (goal.deadline - today).days
 
     if days_remaining < 0:

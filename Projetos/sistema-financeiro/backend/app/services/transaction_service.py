@@ -22,6 +22,7 @@ from app.schemas.transaction import (
     TransactionUpdate,
     TransactionWithCategoryResponse,
 )
+from app.utils.datetime import get_brazil_today
 
 
 def to_transaction_response(
@@ -476,7 +477,7 @@ def get_transactions_history(
     period: Literal["6m", "12m", "ytd", "all"] = "6m",
     group_by: Literal["day", "week", "month"] = "month",
 ) -> TransactionHistoryResponse:
-    today = dt.date.today()
+    today = get_brazil_today()
 
     if period == "6m":
         start_date = today - dt.timedelta(days=180)
@@ -518,7 +519,7 @@ def get_financial_projection(
     history_months: int = 3,
     projection_months: int = 3,
 ) -> ProjectionResponse:
-    today = dt.date.today()
+    today = get_brazil_today()
     month_names = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
 
     start_date = (today - relativedelta(months=history_months)).replace(day=1)

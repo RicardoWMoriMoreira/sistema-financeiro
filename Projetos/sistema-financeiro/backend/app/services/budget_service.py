@@ -16,6 +16,7 @@ from app.schemas.budget import (
     BudgetWithCategoryResponse,
 )
 from app.schemas.category import CategoryResponse
+from app.utils.datetime import get_brazil_today
 
 
 def to_budget_response(
@@ -130,7 +131,7 @@ def get_budget_status(
     month: Optional[str] = None,
 ) -> list[BudgetStatusResponse]:
     if month is None:
-        month = dt.date.today().strftime("%Y-%m")
+        month = get_brazil_today().strftime("%Y-%m")
 
     budgets = budget_repository.list_budgets(
         db=db,

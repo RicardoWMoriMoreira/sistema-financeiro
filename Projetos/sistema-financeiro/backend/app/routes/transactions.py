@@ -29,6 +29,7 @@ from app.schemas.transaction import (
     TransactionUpdate,
     TransactionWithCategoryResponse,
 )
+from app.utils.datetime import get_brazil_now, get_brazil_today
 from app.services.transaction_service import (
     create_transaction,
     delete_installment_group,
@@ -112,7 +113,7 @@ def export_transactions_csv(
 
     output.seek(0)
 
-    filename = f"transacoes_{dt.date.today().strftime('%Y%m%d')}.csv"
+    filename = f"transacoes_{get_brazil_today().strftime('%Y%m%d')}.csv"
 
     return StreamingResponse(
         iter([output.getvalue()]),
@@ -419,7 +420,7 @@ def generate_transactions_pdf(
         alignment=2,
     )
     footer = Paragraph(
-        f"Relatório gerado em {dt.datetime.now().strftime('%d/%m/%Y às %H:%M')}",
+        f"Relatório gerado em {get_brazil_now().strftime('%d/%m/%Y às %H:%M')}",
         footer_style,
     )
     elements.append(footer)
@@ -427,7 +428,7 @@ def generate_transactions_pdf(
     doc.build(elements)
     buffer.seek(0)
 
-    filename = f"relatorio_financeiro_{dt.date.today().strftime('%Y%m%d')}.pdf"
+    filename = f"relatorio_financeiro_{get_brazil_today().strftime('%Y%m%d')}.pdf"
 
     return StreamingResponse(
         buffer,
